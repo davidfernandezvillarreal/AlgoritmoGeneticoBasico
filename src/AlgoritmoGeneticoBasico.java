@@ -2,17 +2,11 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Random;
 
-import javax.swing.JFrame;
-import javax.swing.plaf.synth.SynthSeparatorUI;
-
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartFrame;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.data.category.DefaultCategoryDataset;
-import org.jfree.data.general.DefaultPieDataset;
-
-import java.text.DecimalFormat;
 
 public class AlgoritmoGeneticoBasico {
 	ArrayList<ArrayList<Object>> poblacionInicial = new ArrayList<ArrayList<Object>>(); 
@@ -115,7 +109,11 @@ public class AlgoritmoGeneticoBasico {
 			String cruzaPadre = "";
 			String cruzaMadre = "";
 			
-			System.out.println("puntC: " + puntoDeCruzamiento);
+			//-----------------------------------------------------------------------
+			System.out.println(">Padre: " + padre);
+			System.out.println(">Madre: " + madre);
+			System.out.println("puntoDeC: " + puntoDeCruzamiento);
+			//-----------------------------------------------------------------------
 			
 			// Cruzamiento
 			for(int i=0; i<padre.get(2).toString().length(); i++) {
@@ -153,30 +151,43 @@ public class AlgoritmoGeneticoBasico {
 			madre.add(3, calidadDelIndividuo);
 			
 			//-----------------------------------------------------------------------
-			System.out.println(">Padre: " + padre);
-			System.out.println(">Madre: " + madre);
+			System.out.println(">Nuevo Padre: " + padre);
+			System.out.println(">Nueva Madre: " + madre);
 			//-----------------------------------------------------------------------
 		} else {
 			System.out.println("<Padre: " + padre);
 			System.out.println("<Madre: " + madre);
 			
-			padre.remove(4);
-			padre.remove(4);
-			madre.remove(3);
-			madre.remove(3);
+			valorGenotipo = Integer.parseInt(padre.get(1)+"");
+			individuo = padre.get(2).toString();
+			calidadDelIndividuo = (int) Math.pow(valorGenotipo, 2);
+			
+			padre.clear();
+			padre.add(0, 1);
+			padre.add(1, valorGenotipo);
+			padre.add(2, individuo);
+			padre.add(3, calidadDelIndividuo);
+			
+			valorGenotipo = Integer.parseInt(madre.get(1)+"");
+			individuo = madre.get(2).toString();
+			calidadDelIndividuo = (int) Math.pow(valorGenotipo, 2);
+			
+			madre.clear();
+			madre.add(0, 1);
+			madre.add(1, valorGenotipo);
+			madre.add(2, individuo);
+			madre.add(3, calidadDelIndividuo);
 		}
 		
 		// Tomamos el individuo de mayor calidad para la siguiente fase
 		if (Integer.parseInt(padre.get(1).toString())>=Integer.parseInt(madre.get(1).toString())) {
 			padre.remove(0);
 			padre.add(0, indice);
-			suma = suma + Integer.parseInt(padre.get(3).toString());
 			System.out.println("Seleccion PADRE: " + padre.get(1));
 			return padre;
 		} else {
 			madre.remove(0);
 			madre.add(0, indice);
-			suma = suma + Integer.parseInt(padre.get(3).toString());
 			System.out.println("Seleccion MADRE: " + madre.get(1));
 			return madre;
 		}
@@ -191,10 +202,13 @@ public class AlgoritmoGeneticoBasico {
 		for (int i=0; i<individuoBinario.length(); i++) {
 			// Si es verdadero cambiar el bit a su complemento
 			if (new Random().nextBoolean()) {
+				//System.out.println("Cambia: " + i);
 				if (String.valueOf(individuoBinario.charAt(i)).equals("0")) {
 					nuevoIndividuoBinario = nuevoIndividuoBinario + "1";
+					//System.out.println("CERO A UNO");
 				} else {
 					nuevoIndividuoBinario = nuevoIndividuoBinario + "0";
+					//System.out.println("UNO A CERO");
 				}
 			} else {
 				nuevoIndividuoBinario = nuevoIndividuoBinario + individuoBinario.charAt(i);
@@ -247,14 +261,21 @@ public class AlgoritmoGeneticoBasico {
 		ArrayList<Object> individuoMutado = new ArrayList<Object>();
 		
 		generarPoblacionInicial();
-		for (int i=0; i<5; i++) {
-			System.out.println((i+1) + ". Poblacion Inicial: \n" + poblacionInicial);
+		for (int i=0; i<100; i++) {
+			System.out.println("---------------------------------------------------------------------------------------"
+					+ "------------------------------------------------------------------------------------------------");
+			
+			System.out.println("ITERACION: " + (i+1));
+			for(int j=0; j<poblacionInicial.size(); j++) {
+				System.out.println("PI: " + poblacionInicial.get(j));
+			}
 			
 			probabilidadDeSeleccion = 0.0;
 			probabilidadAcumulada = 0.0;
 			
 			mejorIndividuo = realizarCruzamiento();
 			poblacionTemporal.add(mejorIndividuo);
+			suma = Integer.parseInt(mejorIndividuo.get(3).toString());
 			
 			for (int j=poblacionTemporal.size(); j<poblacionInicial.size(); j++) {
 				individuoMutado = realizarMutacion(mejorIndividuo.get(2).toString());
@@ -267,6 +288,7 @@ public class AlgoritmoGeneticoBasico {
 				probabilidadAcumulada = probabilidadAcumulada + probabilidadDeSeleccion;
 				poblacionTemporal.get(j).add(formatoProbabilidad.format(probabilidadDeSeleccion));
 				poblacionTemporal.get(j).add(formatoProbabilidad.format(probabilidadAcumulada));
+				System.out.println("PT: " + poblacionTemporal.get(j));
 			}
 			
 			mejoresIndividuos.add(mejorIndividuo.get(1));
@@ -283,7 +305,7 @@ public class AlgoritmoGeneticoBasico {
 	void iniciarGUI() {
 		ArrayList<Object> mejoresIndividuos = ejecutarAlgoritmo();
 		DefaultCategoryDataset dataset = new DefaultCategoryDataset();
-		
+		System.out.println("------------------------------------------------------------------------------");
 		for (int i=0; i<mejoresIndividuos.size(); i++) {
 			System.out.print(mejoresIndividuos.get(i) + ", ");
 			dataset.addValue((Number) mejoresIndividuos.get(i), "Calidad", (i+1));
@@ -300,8 +322,6 @@ public class AlgoritmoGeneticoBasico {
 	
 	public static void main(String[] args) {
 		AlgoritmoGeneticoBasico agb = new AlgoritmoGeneticoBasico();
-		System.out.println("PI: " + agb.generarPoblacionInicial());
-		System.out.println("RC: " + agb.realizarCruzamiento());
-		//agb.iniciarGUI();
+		agb.iniciarGUI();
 	}
 }
